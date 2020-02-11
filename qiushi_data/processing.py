@@ -44,46 +44,38 @@ def get_year_links():
     for year in years:
         if year[len(year)-3:] == 'htm': #2014 and later
             years_tuple_dict.append((year, 'new'))
-        # elif year[len(year)-1:] == '4': #2004
-        #     years_tuple_dict.append((year, 'oldest'))
         else:
             years_tuple_dict.append((year, 'old'))
     return years_tuple_dict
 
-
-def get_issue_links(input):
+def get_new_issue_links(input_url):
     '''
         given url for a year, get all the issues for that year
     '''
     issues = []
-    input_url = input[0]
-
-    if input[1] == 'new':
-        page = urllib.urlopen(input_url)
-        soup = BeautifulSoup(page,'html.parser')
-        highlight = soup.find(class_='highlight')
-        paragraphs = highlight.find_all('a')
-        for paragraph in paragraphs:
-            link = paragraph['href']
-            if 'mulu' not in link:
-                issues.append(link)
-    # elif input[1] == 'oldest':
-    #     page = urllib.urlopen(input_url)
-    #     soup = BeautifulSoup(page,'html.parser')
-    #     paragraphs = soup.find_all(class_='qihao_qs')
-    #     for paragraph in paragraphs:
-    #         sublink = paragraph.find('a')['href']
-    #         issues.append(input_url + '/' + sublink[2:])
-    elif input[1] == 'old':
-        page = urllib.urlopen(input_url)
-        soup = BeautifulSoup(page,'html.parser')
-        paragraphs = soup.find_all(class_='qihao_qs')
-        for paragraph in paragraphs:
-            sublink = paragraph.find('a')['href']
-            issues.append(input_url + '/' + sublink[2:])
+    page = urllib.urlopen(input_url)
+    soup = BeautifulSoup(page,'html.parser')
+    highlight = soup.find(class_='highlight')
+    paragraphs = highlight.find_all('a')
+    for paragraph in paragraphs:
+        link = paragraph['href']
+        if 'mulu' not in link:
+            issues.append(link)
     return issues
 
 
+def get_old_issue_links(input_url):
+    '''
+        given url for a year, get all the issues for that year
+    '''
+    issues = []
+    page = urllib.urlopen(input_url)
+    soup = BeautifulSoup(page,'html.parser')
+    paragraphs = soup.find_all(class_='qihao_qs')
+    for paragraph in paragraphs:
+        sublink = paragraph.find('a')['href']
+        issues.append(input_url + '/' + sublink[2:])
+    return issues
 
 def scrape():
     '''
@@ -92,18 +84,13 @@ def scrape():
         2014 and later has a 2nd form
     '''
     years_dict = get_year_links()
-    issues = []
+    old_issues = []
+    new_issues = []
     for year in years_dict:
-        one_year_issues = get_issue_links(year)
-        issues.extend(one_year_issues)
-
-    for issue in issues:
-        print(issue)
-    # for year in years:
-        # issues.append(get_issue_links(year))
-
-    #
-    # issues.append(get_issue_links(years[0]))
+        if year[1] == 'new':
+            new_issues.extend(get_new_issue_links(year[0]))
+        else:
+            old_issues.extend(get_old_issue_links(year[0]))
 
 
 if __name__ == "__main__":
